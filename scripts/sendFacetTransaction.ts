@@ -77,7 +77,7 @@ export async function sendFacetTransaction({
 
     await client.waitForTransactionReceipt({ hash: txHash });
     
-    const ethTxApi = `https://facet-node-sepolia-current-b39bd7a0ad86.herokuapp.com/eth_transactions/${txHash}`;
+    const ethTxApi = `https://agate.facet.org/eth_transactions/${txHash}`;
     let ethTxData;
     let attempts = 0;
     const maxAttempts = 6;

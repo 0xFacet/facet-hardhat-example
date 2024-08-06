@@ -50,7 +50,7 @@ async function main() {
     args: [],
   });
   
-  const rpcBaseUrl = 'https://facet-node-sepolia-current-b39bd7a0ad86.herokuapp.com/rpc'
+  const rpcBaseUrl = 'https://agate.facet.org/rpc'
   
   const ethCallPayload = {
     jsonrpc: "2.0",
