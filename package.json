@@ -2,6 +2,14 @@
   "name": "hardhat-project",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
+    "@types/dotenv": "^8.2.0",
     "hardhat": "^2.22.7"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "viem": "^2.18.8"
+  },
+  "scripts": {
+    "test_facet": "hardhat run scripts/deploy.ts --network sepolia"
   }
 }
