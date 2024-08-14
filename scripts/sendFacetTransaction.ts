@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, custom, http, parseUnits, parseGwei, toRlp, toHex, toBytes } from 'viem';
+import { createPublicClient, createWalletClient, http, toRlp, toHex, toBytes } from 'viem';
 import { sepolia } from 'viem/chains';
 import dotenv from 'dotenv';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -10,20 +10,19 @@ const facetInboxAddress = "0x00000000000000000000000000000000000FacE7" as `0x${s
 export async function sendFacetTransaction({
     to = '',
     value = 0,
-    maxFeePerGas,
+    maxFeePerGas = null,
     gasLimit,
     data
 }: {
     to?: `0x${string}` | '',
     value?: bigint | number,
-    maxFeePerGas: bigint | number,
+    maxFeePerGas?: bigint | number | null,
     gasLimit: bigint | number,
     data: `0x${string}`
 }) {
     const rpcUrl = process.env.SEPOLIA_RPC_URL!;
     const privateKey = process.env.PRIVATE_KEY!;
 
-    // Create a public client to interact with the blockchain
     const client = createPublicClient({
         chain: sepolia,
         transport: http(rpcUrl),
@@ -31,7 +30,6 @@ export async function sendFacetTransaction({
     
     const account = privateKeyToAccount(privateKey as `0x${string}`);
     
-    // Create a wallet client to sign transactions
     const walletClient = createWalletClient({
         account: account,
         chain: sepolia,
@@ -43,28 +41,14 @@ export async function sendFacetTransaction({
     
     const network = await client.getChainId();
 
-    let chainId: number;
-
-    if (network === 1) {
-        chainId = 0xface7;
-    } else if (network === 11155111) {
-        chainId = 0xface7a;
-    } else {
-        throw new Error("Unsupported chainId");
-    }
-
-    const facetTxType = toBytes(70);
-
-    const rlpEncoded = toRlp([
-        toHex(chainId),
-        (to == '' ? toHex(to) : to),
-        toHex(value),
-        toHex(maxFeePerGas),
-        toHex(gasLimit),
-        data,
-    ], 'bytes');
-    
-    const out = new Uint8Array([...facetTxType, ...rlpEncoded]);
+    const out = buildFacetTransaction({
+        network,
+        to,
+        value,
+        maxFeePerGas,
+        gasLimit,
+        data
+    });
     
     const tx = {
         from: deployerAddress as `0x${string}`,
@@ -77,11 +61,11 @@ export async function sendFacetTransaction({
 
     await client.waitForTransactionReceipt({ hash: txHash });
     
-    const ethTxApi = `https://agate.facet.org/eth_transactions/${txHash}`;
+    const ethTxApi = `https://testnet-alpha.facet.org/eth_transactions/${txHash}`;
     let ethTxData;
     let attempts = 0;
     const maxAttempts = 6;
-    const baseDelay = 1000; // 1 second
+    const baseDelay = 1000;
 
     while (attempts < maxAttempts) {
         const response = await fetch(ethTxApi);
@@ -108,6 +92,45 @@ export async function sendFacetTransaction({
       };
       return facetTransaction;
     }
+}
+
+function buildFacetTransaction({
+    network,
+    to = '',
+    value,
+    maxFeePerGas = null,
+    gasLimit,
+    data
+}: {
+    network: number,
+    to?: `0x${string}` | '',
+    value: bigint | number,
+    maxFeePerGas?: bigint | number | null,
+    gasLimit: bigint | number,
+    data: `0x${string}`
+}) {
+    let chainId: number;
+
+    if (network === 1) {
+        chainId = 0xface7;
+    } else if (network === 11155111) {
+        chainId = 0xface7a;
+    } else {
+        throw new Error("Unsupported chainId");
+    }
+
+    const facetTxType = toBytes(70);
+
+    const rlpEncoded = toRlp([
+        toHex(chainId),
+        (to == '' ? toHex(to) : to),
+        toHex(value),
+        toHex(maxFeePerGas ?? 0),
+        toHex(gasLimit),
+        data,
+    ], 'bytes');
+    
+    return new Uint8Array([...facetTxType, ...rlpEncoded]);
 }
 
 export interface FacetTransactionReceipt {

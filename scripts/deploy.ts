@@ -1,8 +1,5 @@
-import { createPublicClient, http, createWalletClient, custom, parseEther, stringify, parseGwei, encodeFunctionData, decodeFunctionResult, formatEther } from 'viem';
-import { sepolia } from 'viem/chains';
+import { encodeFunctionData, decodeFunctionResult, formatEther } from 'viem';
 import dotenv from 'dotenv';
-// import { bytecode, abi } from '../artifacts/contracts/SimpleStorage.sol/SimpleStorage.json';
-import { privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs';
 import path from 'path';
 import { sendFacetTransaction } from './sendFacetTransaction';
@@ -34,7 +31,7 @@ async function main() {
   
   const facetTransaction2 = await sendFacetTransaction({
     to: contractAddress as `0x${string}`,
-    maxFeePerGas: 10,
+    maxFeePerGas: 0, // Magic value to use base fee
     gasLimit: 500_000,
     data: setValueData as `0x${string}`
   })
@@ -50,7 +47,7 @@ async function main() {
     args: [],
   });
   
-  const rpcBaseUrl = 'https://agate.facet.org/rpc'
+  const rpcBaseUrl = 'https://testnet-alpha.facet.org/rpc'
   
   const ethCallPayload = {
     jsonrpc: "2.0",
