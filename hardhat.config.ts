@@ -1,7 +1,7 @@
-import { JsonRpcProvider, MaxUint256, Wallet } from "ethers";
+import { JsonRpcProvider, MaxUint256, TransactionResponse, Wallet } from "ethers";
 import { extendEnvironment, HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
-import { prepareFacetTransaction, viem as facetViem } from "@0xfacet/sdk";
+import { prepareFacetTransaction, viem as facetViem, computeFacetTransactionHash } from "@0xfacet/sdk";
 
 const FACET_INBOX_ADDRESS =
   "0x00000000000000000000000000000000000FacE7" as const;
@@ -43,12 +43,14 @@ extendEnvironment((hre) => {
 
         const gasLimit = estimateGasRes;
               
-        const { encodedTransaction } = await prepareFacetTransaction(
+        const { encodedTransaction, fctMintAmount } = await prepareFacetTransaction(
           Number(l2Network.chainId),
           fctMintRate,
-          { to: req.to as `0x${string}` | undefined,
+          {
+            to: req.to as `0x${string}` | undefined,
             value: req.value ? BigInt(req.value.toString()) : undefined as bigint | undefined,
-            data: req.data as `0x${string}` | undefined, gasLimit
+            data: req.data as `0x${string}` | undefined,
+            gasLimit
           }
         );
 
@@ -58,7 +60,29 @@ extendEnvironment((hre) => {
           data: encodedTransaction,
         };
         
-        return l1Signer.sendTransaction(l1Transaction)
+        const response = await l1Signer.sendTransaction(l1Transaction)
+        
+        const facetTransactionHash = computeFacetTransactionHash(
+          response.hash as `0x${string}`,
+          l1Signer.address as `0x${string}`,
+          (req.to as `0x${string}` | undefined) ?? "0x",
+          req.value ? BigInt(req.value.toString()) : 0n as bigint,
+          (req.data as `0x${string}` | undefined) ?? "0x",
+          gasLimit,
+          fctMintAmount
+        );
+        
+        return {
+          ...response,
+          hash: facetTransactionHash as string,
+          to: (req.to as string | undefined) ?? null,
+          value: BigInt((req.value ?? 0).toString()) as bigint,
+          data: (req.data as string | undefined) ?? "0x",
+          gasLimit,
+          chainId: l2Network.chainId,
+          signature: { ...response.signature, r: "0x0", s: "0x0" },
+          type: 126
+        } as TransactionResponse
       };
       return signer
     }));

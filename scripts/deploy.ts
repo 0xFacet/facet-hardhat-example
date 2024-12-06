@@ -3,7 +3,12 @@ import { ethers } from 'hardhat';
 async function main() {
   const nft = await ethers.deployContract('NFT');
 
-  await nft.waitForDeployment();
+  const res = nft.deploymentTransaction()
+  console.log(res)
+  
+  const receipt = await res?.wait()
+  
+  console.log(receipt)
 
   console.log('NFT Contract Deployed at ' + nft.target);
 }
