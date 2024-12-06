@@ -1,15 +1,20 @@
 {
-  "name": "hardhat-project",
+  "name": "facet-hardhat-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
-    "@types/dotenv": "^8.2.0",
-    "hardhat": "^2.22.7"
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.15"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "viem": "^2.18.8"
-  },
-  "scripts": {
-    "test_facet": "hardhat run scripts/deploy.ts --network sepolia"
+    "@0xfacet/sdk": "^0.1.0",
+    "@openzeppelin/contracts": "^5.1.0"
   }
 }
