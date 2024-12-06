@@ -6,7 +6,7 @@ dotenv.config(); // Load environment variables from .env file
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.15",
+    version: "0.8.26",
     settings: {
       optimizer: {
         enabled: true,
